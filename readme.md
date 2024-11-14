@@ -4,7 +4,8 @@ A customizable toast component for React Native, allowing you to display informa
 
 ## Demo
 
-![Toast Demo](https://github.com/user-attachments/assets/82b73078-ec53-4aeb-8e97-35a25e2b2101)
+![ScreenRecording2024-11-14at4 44 10PM-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/85f08b01-61dc-43d3-8775-986730067051)
+
 
 The demo above shows:
 - Multiple toast types in action
