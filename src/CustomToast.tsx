@@ -1,8 +1,13 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Text, StyleSheet, View, PanResponder, TouchableOpacity } from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {
+  Animated,
+  Text,
+  StyleSheet,
+  View,
+  PanResponder,
+  TouchableOpacity,
+} from 'react-native';
 import { ToastProps, ToastType } from './type';
-
-
 
 interface ToastComponentProps extends ToastProps {
   onHide: () => void;
@@ -10,21 +15,23 @@ interface ToastComponentProps extends ToastProps {
 
 const SWIPE_THRESHOLD = 50;
 const DEFAULT_DURATION = 3000;
-const MIN_DURATION = 1000; 
-const MAX_DURATION = 10000; 
+const MIN_DURATION = 1000;
+const MAX_DURATION = 10000;
 
-const Toast: React.FC<ToastComponentProps> = ({ 
-  message, 
-  type, 
-  position, 
-  duration: propDuration, 
-  onHide 
+const Toast: React.FC<ToastComponentProps> = ({
+  message,
+  type,
+  position,
+  duration: propDuration,
+  onHide,
 }) => {
-  const duration = propDuration 
+  const duration = propDuration
     ? Math.min(Math.max(propDuration, MIN_DURATION), MAX_DURATION)
     : DEFAULT_DURATION;
 
-  const slideAnim = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
+  const slideAnim = useRef(
+    new Animated.Value(position === 'top' ? -100 : 100),
+  ).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -36,7 +43,7 @@ const Toast: React.FC<ToastComponentProps> = ({
   const startProgressAnimation = (startFromValue: number = 0) => {
     progressAnim.setValue(startFromValue);
     startTimeRef.current = Date.now();
-    
+
     Animated.timing(progressAnim, {
       toValue: 1,
       duration: remainingTimeRef.current,
@@ -47,7 +54,10 @@ const Toast: React.FC<ToastComponentProps> = ({
   const pauseProgress = () => {
     progressAnim.stopAnimation();
     const elapsedTime = Date.now() - startTimeRef.current;
-    remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsedTime);
+    remainingTimeRef.current = Math.max(
+      0,
+      remainingTimeRef.current - elapsedTime,
+    );
   };
 
   const resetProgress = () => {
@@ -71,23 +81,37 @@ const Toast: React.FC<ToastComponentProps> = ({
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
-        
+
         Animated.spring(scaleAnim, {
           toValue: 0.97,
           useNativeDriver: true,
         }).start();
       },
       onPanResponderMove: (_, gestureState) => {
-        const newY = Math.max(0, gestureState.dy);
-        translateYAnim.setValue(newY);
-        const newOpacity = Math.max(0, 1 - (newY / 200));
-        opacityAnim.setValue(newOpacity);
+        const newY = gestureState.dy;
+        const isUpSwipe = newY < 0;
+        const isDownSwipe = newY > 0;
+
+        if (
+          (position === 'top' && isUpSwipe) ||
+          (position === 'bottom' && isDownSwipe)
+        ) {
+          translateYAnim.setValue(newY);
+          const newOpacity = Math.max(0, 1 - Math.abs(newY) / 200);
+          opacityAnim.setValue(newOpacity);
+        }
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > SWIPE_THRESHOLD) {
+        const isUpSwipe = gestureState.dy < 0;
+        const isDownSwipe = gestureState.dy > 0;
+        const shouldDismiss =
+          (position === 'top' && isUpSwipe && Math.abs(gestureState.dy) > SWIPE_THRESHOLD) ||
+          (position === 'bottom' && isDownSwipe && Math.abs(gestureState.dy) > SWIPE_THRESHOLD);
+
+        if (shouldDismiss) {
           Animated.parallel([
             Animated.timing(translateYAnim, {
-              toValue: 500,
+              toValue: position === 'top' ? -500 : 500,
               duration: 200,
               useNativeDriver: true,
             }),
@@ -123,7 +147,7 @@ const Toast: React.FC<ToastComponentProps> = ({
           });
         }
       },
-    })
+    }),
   ).current;
 
   useEffect(() => {
@@ -164,7 +188,7 @@ const Toast: React.FC<ToastComponentProps> = ({
         duration: 300,
         useNativeDriver: true,
       }),
-    ]).start(({ finished }) => {
+    ]).start(({finished}) => {
       if (finished) onHide();
     });
   };
@@ -176,28 +200,28 @@ const Toast: React.FC<ToastComponentProps> = ({
           indicatorColor: '#4CAF50',
           backgroundColor: '#ffffff',
           textColor: '#333333',
-          title: `Success`
+          title: `Success`,
         };
       case 'error':
         return {
           indicatorColor: '#F44336',
           backgroundColor: '#ffffff',
           textColor: '#333333',
-          title: `Error`
+          title: `Error`,
         };
       case 'warning':
         return {
           indicatorColor: '#FF9800',
           backgroundColor: '#ffffff',
           textColor: '#333333',
-          title: `Warning`
+          title: `Warning`,
         };
       default:
         return {
           indicatorColor: '#333333',
           backgroundColor: '#ffffff',
           textColor: '#333333',
-          title: `Info`
+          title: `Info`,
         };
     }
   };
@@ -217,36 +241,37 @@ const Toast: React.FC<ToastComponentProps> = ({
         {
           opacity: opacityAnim,
           transform: [
-            { translateY: slideAnim },
-            { translateY: translateYAnim },
-            { scale: scaleAnim }
+            {translateY: slideAnim},
+            {translateY: translateYAnim},
+            {scale: scaleAnim},
           ],
-          backgroundColor: config.backgroundColor
+          backgroundColor: config.backgroundColor,
         },
         position === 'top' ? styles.top : styles.bottom,
-      ]}
-    >
+      ]}>
       <View style={styles.indicatorContainer}>
-        <View style={[styles.indicator, { backgroundColor: config.indicatorColor }]} />
-        <Animated.View 
+        <View
+          style={[styles.indicator, {backgroundColor: config.indicatorColor}]}
+        />
+        <Animated.View
           style={[
-            styles.progressIndicator, 
-            { 
+            styles.progressIndicator,
+            {
               backgroundColor: config.indicatorColor,
               height: progressHeight,
-            }
-          ]} 
+            },
+          ]}
         />
       </View>
       <View style={styles.contentContainer}>
-        <Text style={[styles.title, { color: config.indicatorColor }]}>
+        <Text style={[styles.title, {color: config.indicatorColor}]}>
           {config.title}
         </Text>
-        <Text style={[styles.message, { color: config.textColor }]}>
+        <Text style={[styles.message, {color: config.textColor}]}>
           {message}
         </Text>
       </View>
-      <TouchableOpacity onPress={onHide} style={styles.closeButton}>
+      <TouchableOpacity onPress={dismissToast} style={styles.closeButton}>
         <Text style={styles.closeButtonText}>×</Text>
       </TouchableOpacity>
     </Animated.View>
@@ -302,8 +327,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   message: {
-    fontSize: 14,
-    color: '#666666',
+    fontSize: 16,
+    color: '#0000',
+    fontWeight:'600',
+    letterSpacing:0.6
   },
   closeButton: {
     padding: 12,
