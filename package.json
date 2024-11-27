@@ -1,6 +1,6 @@
 {
   "name": "react-native-toasty-toast",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "",
   "main": "index.tsx",
   "scripts": {

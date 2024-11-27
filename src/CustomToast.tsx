@@ -6,17 +6,27 @@ import {
   View,
   PanResponder,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
-import { ToastProps, ToastType } from './type';
 
 interface ToastComponentProps extends ToastProps {
   onHide: () => void;
 }
+export type ToastType = 'success' | 'error' | 'warning';
+export type ToastPosition = 'top' | 'bottom';
 
+export interface ToastProps {
+  message: string;
+  type: ToastType;
+  position: ToastPosition;
+  duration: number;
+  onHide?: () => void;
+}
 const SWIPE_THRESHOLD = 50;
 const DEFAULT_DURATION = 3000;
 const MIN_DURATION = 1000;
 const MAX_DURATION = 10000;
+const postion = Platform.OS == 'ios' ? 60 : 20;
 
 const Toast: React.FC<ToastComponentProps> = ({
   message,
@@ -105,8 +115,12 @@ const Toast: React.FC<ToastComponentProps> = ({
         const isUpSwipe = gestureState.dy < 0;
         const isDownSwipe = gestureState.dy > 0;
         const shouldDismiss =
-          (position === 'top' && isUpSwipe && Math.abs(gestureState.dy) > SWIPE_THRESHOLD) ||
-          (position === 'bottom' && isDownSwipe && Math.abs(gestureState.dy) > SWIPE_THRESHOLD);
+          (position === 'top' &&
+            isUpSwipe &&
+            Math.abs(gestureState.dy) > SWIPE_THRESHOLD) ||
+          (position === 'bottom' &&
+            isDownSwipe &&
+            Math.abs(gestureState.dy) > SWIPE_THRESHOLD);
 
         if (shouldDismiss) {
           Animated.parallel([
@@ -156,7 +170,7 @@ const Toast: React.FC<ToastComponentProps> = ({
       Animated.spring(slideAnim, {
         toValue: 0,
         useNativeDriver: true,
-        tension: 100,
+        tension: 200,
         friction: 10,
       }),
       Animated.timing(opacityAnim, {
@@ -288,14 +302,15 @@ const styles = StyleSheet.create({
     right: 0,
     shadowColor: '#000',
     shadowOffset: {
-      width: 0,
-      height: 2,
+      width: 3,
+      height: 3, 
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 3.84, 
+    elevation: 3, 
     minHeight: 64,
-    overflow: 'hidden',
+    // overflow: 'hidden',
+    backgroundColor: '#fff', 
   },
   indicatorContainer: {
     width: 4,
@@ -329,8 +344,8 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 16,
     color: '#0000',
-    fontWeight:'600',
-    letterSpacing:0.6
+    fontWeight: '600',
+    letterSpacing: 0.6,
   },
   closeButton: {
     padding: 12,
@@ -345,7 +360,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   top: {
-    top: 30,
+    top: postion,
   },
   bottom: {
     bottom: 30,
